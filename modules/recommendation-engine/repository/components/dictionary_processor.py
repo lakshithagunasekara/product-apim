@@ -39,6 +39,8 @@ APPLICATION_DESCRIPTION = 'application_description'
 TAGS = 'tags'
 CONTEXT = 'context'
 RESOURCES = 'resources'
+RESOURCE = 'resource'
+SUMMARY = 'summary'
 DESCRIPTION = 'description'
 SEARCH_QUERY = 'search_query'
 
@@ -151,8 +153,8 @@ def create_API_dictionary(API_document):
     # add the resource names of each API
     try:
         if RESOURCES in API_document.keys():
-            swagger_API = API_document[RESOURCES]
-            API_keyword_dictionary = add_resources(swagger_API,API_keyword_dictionary)
+            resources = API_document[RESOURCES]
+            API_keyword_dictionary = add_resources(resources,API_keyword_dictionary)
             logger.debug("Resource added to API keyword dictionary")
     except Exception:
         logger.exception("Error adding Resource to API keyword dictionary")
@@ -214,24 +216,27 @@ def add_context(context,keyword_dictionary):
     return keyword_dictionary
 
 def add_resources(resources,keyword_dictionary):
-    resources = list(resources.lstrip('[').rstrip(']').split(','))
-
-    for resource in resources:
-        resource=resource.strip().lstrip('/').lower()
+    for resourceObj in resources:
+        resource = resourceObj[RESOURCE]
         if resource == "*":
             continue
-        resource_keys=extract_keywords(resource).keys()
         if resource in keyword_dictionary:
             keyword_dictionary[resource] += LOW_WEIGHT
         else:
             keyword_dictionary[resource]=LOW_WEIGHT
-            
-        for resource_key in resource_keys:
-            if resource_key is not resource:
-                if resource_key in keyword_dictionary:
-                    keyword_dictionary[resource_key] += LOW_WEIGHT
-                else:
-                    keyword_dictionary[resource_key] = LOW_WEIGHT
+        add_resource_details(resourceObj,RESOURCE,keyword_dictionary)
+        add_resource_details(resourceObj,SUMMARY,keyword_dictionary)
+        add_resource_details(resourceObj,DESCRIPTION,keyword_dictionary)
+    return keyword_dictionary
+
+def add_resource_details(resource,key,keyword_dictionary):
+    if key in resource.keys():
+        description_keys = extract_keywords(resource[key]).keys()        
+        for description_key in description_keys:
+            if description_key in keyword_dictionary:
+                keyword_dictionary[description_key] += LOW_WEIGHT
+            else:
+                keyword_dictionary[description_key] = LOW_WEIGHT
     return keyword_dictionary
 
 def add_API_description(description,keyword_dictionary):
