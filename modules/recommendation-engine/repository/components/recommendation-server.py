@@ -135,7 +135,7 @@ def add_API(API_data, organization):
 def delete_API(payload, organization):
     try:
         tenant = payload['tenant']
-        api = payload['api_name']
+        api = payload['api_id']
         delete_API_from_db(tenant,api, organization)
         response = Response(status=200)    
     except Exception:

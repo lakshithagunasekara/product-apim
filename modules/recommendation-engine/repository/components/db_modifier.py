@@ -62,9 +62,9 @@ def get_user_recommendations(user, tenant, organization, min_api_count):
         if apis_count>min_api_count:
             recommendations = generate_final_recommendation(user, tenant, organization)
             recommended_api_list = []
-            for api in recommendations:
-                if api in API_ids.keys():
-                    recommended_api_list.append({'id': API_ids[api], 'name':api})
+            for api_id in recommendations:
+                if api_id in API_ids.keys():
+                    recommended_api_list.append({'id': api_id, 'name':API_ids[api_id]})
             return recommended_api_list
         else:
             return None
@@ -100,12 +100,12 @@ def update_API_id_db(API, organization):
     if entry.count()>0:
         api_ids = entry[0][API_IDS]
         if API_id not in api_ids.keys():
-            api_ids[API_name] = API_id
+            api_ids[API_id] = API_name
         entry_identifier = {ORG: organization,TENANT : tenant}
         updated_entry = {"$set": { API_IDS: api_ids}}
         api_id_db.update_one(entry_identifier, updated_entry)
     else:
-        entry = {ORG: organization, TENANT : tenant, API_IDS: {API_name:API_id}}
+        entry = {ORG: organization, TENANT : tenant, API_IDS: {API_id:API_name}}
         result = api_id_db.insert(entry,check_keys=False)
 
 def delete_api_id_db(tenant, API_id, organization):
