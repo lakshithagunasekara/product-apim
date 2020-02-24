@@ -1,4 +1,3 @@
-# from dictionary_processor import *
 from recommendation import *
 from log import logger
 
@@ -6,10 +5,10 @@ def add_api_to_db(API, organization):
     update_API_dictionary(API,organization)
     update_API_id_db(API, organization)
 
-def delete_API_from_db(tenant, API_name, organization):
-    delete_API_dictionary(tenant, API_name, organization)
-    delete_api_id_db(tenant, API_name, organization)
-    logger.debug("api " + API_name + " belongs to "+ tenant + " deleted from db")
+def delete_API_from_db(tenant, API_id, organization):
+    delete_API_dictionary(tenant, API_id, organization)
+    delete_api_id_db(tenant, API_id, organization)
+    logger.debug("api " + API_id + " belongs to "+ tenant + " deleted from db")
 
 def update_application_in_db(application, organization):
     time_stamp = get_current_time()
@@ -109,15 +108,15 @@ def update_API_id_db(API, organization):
         entry = {ORG: organization, TENANT : tenant, API_IDS: {API_name:API_id}}
         result = api_id_db.insert(entry,check_keys=False)
 
-def delete_api_id_db(tenant, API_name, organization):
+def delete_api_id_db(tenant, API_id, organization):
     """
-    This method deletes the entry with the given API name and tenant, from the 'API_List' collection.
+    This method deletes the entry with the given API ID and tenant, from the 'API_List' collection.
     """
     api_id_db = connect_db(API_LIST)
     entry = api_id_db.find({ORG: organization, TENANT : tenant})
     if entry.count()>0:
         api_ids = entry[0][API_IDS]
-        result = api_ids.pop(API_name, None)
+        result = api_ids.pop(API_id, None)
         entry_identifier = {ORG: organization, TENANT : tenant}
         updated_entry = {"$set": { API_IDS: api_ids}}
         api_id_db.update_one(entry_identifier, updated_entry)
@@ -137,16 +136,16 @@ def update_API_dictionary(API, organization):
     tenant_entry = dictionary_table.find({ORG:organization, TENANT:tenant})
     if tenant_entry.count()>0:
         API_dictionaries = tenant_entry[0][API_DICTIONARIES]
-        API_dictionaries[API_name] = API_dictionary
+        API_dictionaries[API_id] = API_dictionary
         entry_identifier = { ORG:organization, TENANT: tenant }
         updated_dictionary = {"$set": { API_DICTIONARIES: API_dictionaries}}
         dictionary_table.update_one(entry_identifier, updated_dictionary)
     else:
-        tenant_entry = { ORG:organization, TENANT: tenant, API_DICTIONARIES: {API_name: API_dictionary}}
+        tenant_entry = { ORG:organization, TENANT: tenant, API_DICTIONARIES: {API_id: API_dictionary}}
         result = dictionary_table.insert(tenant_entry,check_keys=False)
     logger.debug("API dictionary was successfull updated for API " + API_name)
     
-def delete_API_dictionary(tenant, API_name, organization):
+def delete_API_dictionary(tenant, API_id, organization):
     """
     Deletes the API_dictionary from the collection when the api is deleted.
     """
@@ -154,11 +153,11 @@ def delete_API_dictionary(tenant, API_name, organization):
     tenant_entry = dictionary_table.find({ORG:organization, TENANT : tenant})
     if tenant_entry.count()>0:
         API_dictionaries = tenant_entry[0][API_DICTIONARIES]
-        result = API_dictionaries.pop(API_name, None)
+        result = API_dictionaries.pop(API_id, None)
         entry_identifier = {ORG:organization, TENANT : tenant }
         updated_dictionary = {"$set": { API_DICTIONARIES: API_dictionaries}}
         dictionary_table.update_one(entry_identifier, updated_dictionary)
-        logger.debug("API dictionary was deleted for API " + API_name)
+        logger.debug("API dictionary was deleted for API " + API_id)
     
 
 def modify_search_db(user, months, min_entries):
